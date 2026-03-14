@@ -1,0 +1,55 @@
+# Build artifacts
+/target/
+**/target/
+
+# Cargo lock for libraries (keep for binaries)
+# Cargo.lock is kept for reproducible builds
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Rust analyzer and language server
+.rust-analyzer/
+
+# Cache and temporary files
+.repocrunch/
+*.tmp
+*.cache
+
+# Output files
+repocrunch-output.txt
+*.out
+
+# Debug builds
+debug/
+
+# Coverage reports
+*.gcno
+*.gcda
+coverage/
+tarpaulin-report.html
+
+# Benchmark results
+criterion/
+
+# Environment files
+.env
+.env.local
+
+# Logs
+*.log
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini

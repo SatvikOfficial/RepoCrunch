@@ -1,0 +1,59 @@
+[package]
+name = "repocrunch"
+version = "0.1.0"
+edition = "2021"
+description = "High-performance repository packer and query engine for LLMs"
+
+[dependencies]
+# CLI
+clap = { version = "4", features = ["derive"] }
+
+# File walking & search
+ignore = "0.4"
+grep-regex = "0.1"
+grep-searcher = "0.1"
+grep-matcher = "0.1"
+
+# Parallelism
+rayon = "1.10"
+
+# Memory-mapped I/O
+memmap2 = "0.9"
+
+# Hashing & caching
+blake3 = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Token counting
+tiktoken-rs = "0.6"
+
+# Binary detection
+infer = "0.16"
+
+# Clipboard
+arboard = "3"
+
+# Terminal UI
+colored = "2"
+indicatif = "0.17"
+chrono = "0.4"
+
+# Tree-sitter
+tree-sitter = "0.24"
+tree-sitter-rust = "0.23"
+tree-sitter-javascript = "0.23"
+tree-sitter-typescript = "0.23"
+tree-sitter-python = "0.23"
+tree-sitter-go = "0.23"
+tree-sitter-java = "0.23"
+tree-sitter-cpp = "0.23"
+
+# Error handling
+anyhow = "1"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
