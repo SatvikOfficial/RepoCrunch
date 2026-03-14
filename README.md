@@ -2,238 +2,131 @@
 
 A high-performance repository packer and query engine written in Rust, designed to prepare codebases for Large Language Models (LLMs).
 
-It recursively scans your repository, builds an intelligent file index utilizing **Tree-sitter** for parsing, and packs relevant source code into an LLM-native text format.
+It recursively scans your repository, builds an intelligent file index utilizing **Tree-sitter** for parsing, and packs relevant source code into a token-efficient, LLM-native format.
 
 ## Features
 
-- **Extremely Fast:** Zero-copy I/O with `memmap2`, SIMD-accelerated search, and threaded parallel walking
-- **Smart Caching:** Avoids re-parsing the entire repository on every run utilizing `blake3` content hashing (up to 8× speedups on cached runs)
-- **Intelligent Packing:** Tree-sitter accurate import and symbol extraction
-- **Query Mode:** Natural-language heuristic expansion (e.g. `repocrunch "auth files"`) and dependency awareness to ensure proper context is packed
-- **Dependency Graph:** Understands cross-file boundaries to resolve missing contexts
-- **AI-Optimized Output:** Removes XML-like tags mimicking HTML in favor of native token-efficient text with dependency structure exposed
-
----
+- ⚡ **Extremely Fast** — Zero-copy I/O (`memmap2`), parallel scanning (`rayon`), sub-second cached runs
+- 🧠 **Tree-sitter Parsing** — Accurate import/symbol extraction for Rust, TypeScript, JavaScript, Python, Go, Java, C/C++
+- 🔎 **Query Mode** — `repocrunch "auth files"` packs only relevant files with heuristic query expansion
+- 📊 **Dependency Graph** — Understands cross-file imports and resolves missing context automatically
+- 🗂️ **Compact Output** — FILE INDEX header, `--- path ---` delimiters, blake3 duplicate detection
+- 💾 **Smart Caching** — `blake3` content hashing for 8× speedups on subsequent runs
+- 📋 **Clipboard Support** — `--copy` sends output directly to clipboard
+- 🔧 **Utility Commands** — `stats`, `explain`, `flow` for deep repository inspection
 
 ## Installation
 
-### Prerequisites
-
-Ensure you have Rust installed. Install it from [rustup.rs](https://rustup.rs):
-
 ```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+# From source
+git clone https://github.com/SatvikOfficial/RepoCrunch.git
+cd RepoCrunch
+cargo install --path .
 ```
-
-### Build from Source
-
-```bash
-# Clone the repository
-git clone https://github.com/YOUR_USERNAME/repocrunch.git
-cd repocrunch
-
-# Build release binary
-cargo build --release
-
-# Install to ~/.cargo/bin/
-cp target/release/repocrunch ~/.cargo/bin/
-
-# Verify installation
-repocrunch --version
-```
-
-### Direct Run (without installation)
-
-```bash
-# Run directly using cargo
-cargo run --release -- [OPTIONS]
-```
-
----
 
 ## Usage
 
-Run `repocrunch` anywhere inside a Git repository. It will automatically walk up to find the `.git` root.
+Run `repocrunch` anywhere inside a Git repository. It automatically detects the repo root by walking up to find `.git`.
 
-### Basic Commands
+### Pack Modes
 
 ```bash
 # Full repository pack
 repocrunch
 
-# Query filtered pack (e.g., only auth-related files and their dependencies)
-repocrunch "components relating to login and auth"
+# Query-filtered pack (natural language)
+repocrunch "files related to authentication"
+repocrunch "frontend components"
+repocrunch "database models"
 ```
 
-The tool generates `repocrunch-output.txt` by default in the current directory.
+### Options
 
----
+| Flag | Description |
+|------|-------------|
+| `--format ai` | Ultra-compact `@f`/`@/f` output format |
+| `--max-tokens N` | Enforce a token budget (importance-based selection) |
+| `--max-file-size N` | Override max file size in bytes (default: 1MB) |
+| `--copy` | Copy output to clipboard |
+| `--json-index` | Export file index as JSON for tool integration |
+| `--no-cache` | Disable blake3 caching |
+| `-o FILE` | Output file path (default: `repocrunch-output.txt`) |
+| `--verbose` | Show timing details |
 
-## Command-Line Options
-
-```
-Usage: repocrunch [OPTIONS] [QUERY]
-
-Arguments:
-  [QUERY]  Natural-language query to filter files (e.g. "files related to auth")
-
-Options:
-  -o, --output <OUTPUT>      Output file path [default: repocrunch-output.txt]
-  -t, --max-tokens <TOKENS>  Maximum token budget
-  -f, --format <FORMAT>      Output format: default or ai [default: default]
-      --max-file-size <SIZE> Maximum file size in bytes (defaults to 1MB)
-  -i, --include <PATTERN>    Additional include glob patterns
-  -e, --exclude <PATTERN>    Additional exclude glob patterns
-      --json-index           Print the parsed dependency index as JSON
-      --copy                 Copy output to clipboard
-      --no-cache             Disable caching
-  -v, --verbose              Show verbose output
-  -h, --help                 Print help
-  -V, --version              Print version
-```
-
-### Examples
+### Subcommands
 
 ```bash
-# Pack into the highly compact @file/@lang/@end AI format
-repocrunch --format ai
-
-# Enforce a strict token limit (e.g., packing for models with 100K context)
-repocrunch --max-tokens 100000
-
-# Copy the packed output directly to your clipboard
-repocrunch --copy
-
-# Export the parsed dependency and file index for other tools
-repocrunch --json-index > index.json
-
-# Include additional patterns
-repocrunch --include "*.md" --include "*.txt"
-
-# Exclude specific patterns
-repocrunch --exclude "tests/*" --exclude "*.test.js"
-
-# Verbose output with custom output file
-repocrunch -v -o packed-repo.txt
-
-# Query with custom max file size
-repocrunch "authentication" --max-file-size 5000000
-```
-
----
-
-## Subcommands
-
-### `stats` - Repository Statistics
-
-View deep repository statistics and language breakdown:
-
-```bash
+# Repository statistics with language breakdown
 repocrunch stats
-```
 
-### `explain` - File Explanation
-
-Explain a specific file's exported symbols and inbound/outbound imports:
-
-```bash
+# Deep file inspection (imports, symbols, dependents)
 repocrunch explain src/main.rs
+
+# Trace execution flow through the dependency graph
+repocrunch flow login
 ```
 
-### `flow` - Execution Flow Trace
+## Output Format
 
-Map out the path of execution or imports across the codebase:
-
-```bash
-repocrunch flow <symbol-name>
-```
-
----
-
-## Configuration
-
-### `.repocrunchignore`
-
-By default, RepoCrunch:
-- Skips binary files (detected automatically)
-- Skips hidden files
-- Skips files over 1MB
-- Respects your `.gitignore`
-
-You can create a `.repocrunchignore` file in your repository root to ignore specific paths specifically for packing. Format is the same as `.gitignore`.
-
-### Override File Size Limit
-
-```bash
-repocrunch --max-file-size 5000000  # 5 MB
-```
-
----
-
-## Output Formats
-
-### Default Format
-
-Human-readable format with file paths and content:
+RepoCrunch generates a token-efficient format optimized for LLM consumption:
 
 ```
-File: src/main.rs
-Language: Rust
-Tokens: 1234
+# MyProject | v0.1.0 | 2026-03-14 | files:15 | tokens:37021
 
-[File content here]
+## FILE INDEX
+src/main.rs | rust | 2488 | scanner, packer, query
+src/scanner.rs | rust | 1977 | ignore::WalkBuilder, memmap2::Mmap
+src/utils.rs | rust | 200
+
+## DUPLICATES (1)
+src/copy.rs = src/original.rs
+
+--- src/main.rs ---
+fn main() { ... }
+
+--- src/copy.rs [duplicate of src/original.rs] ---
+
+--- src/original.rs ---
+fn original() { ... }
 ```
 
-### AI Format (`--format ai`)
+**Key design decisions:**
+- Compact FILE INDEX at the top replaces per-file metadata headers
+- One line per file: `path | language | tokens | imports`
+- `--- path ---` delimiters are simple and token-efficient
+- Duplicate files detected via blake3 hash — content included only once
+- No XML, no `<code>` tags, no verbose formatting
 
-Compact format optimized for LLM context windows:
+## `.repocrunchignore`
+
+Drop a `.repocrunchignore` file in your repo root to exclude paths from packing. Uses the same syntax as `.gitignore`:
 
 ```
-@file: src/main.rs
-@lang: rust
-@tokens: 1234
-
-[File content here]
-@end
+docs/
+*.log
+tests/
+*.min.js
 ```
 
----
+## Performance
 
-## Development
+| Metric | Value |
+|--------|-------|
+| First run (15 files) | ~94ms |
+| Cached run | ~6ms |
+| Token reduction vs XML format | **56%** |
+| Parallel threads | Auto-detected |
 
-```bash
-# Run in debug mode
-cargo run -- [OPTIONS]
+## Architecture
 
-# Run tests
-cargo test
-
-# Check for errors
-cargo check
-
-# Format code
-cargo fmt
-
-# Lint code
-cargo clippy
+```
+scanner.rs → language.rs → index.rs → dependency_graph.rs → query.rs → packer.rs
+                                          ↑
+                                       cache.rs (blake3)
 ```
 
----
+Plus: `token.rs`, `stats.rs`, `explain.rs`, `flow.rs`, `main.rs`
 
 ## License
 
-MIT License - See LICENSE file for details.
-
----
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
-**Made with ❤️ using Rust**
+MIT
