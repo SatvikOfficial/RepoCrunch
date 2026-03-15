@@ -32,13 +32,13 @@ Pack your entire repo into a single, token-efficient file that LLMs can actually
 ### Quick Install (macOS / Linux)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/SatvikOfficial/RepoCrunch/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/SatvikOfficial/RepoCrunch/main/install.sh
 ```
 
 ### Windows (PowerShell)
 
 ```powershell
-iwr https://raw.githubusercontent.com/SatvikOfficial/RepoCrunch/main/install.ps1 | iex
+iwr https://raw.githubusercontent.com/SatvikOfficial/RepoCrunch/main/install.ps1
 ```
 
 ### Cargo (any platform with Rust)
