@@ -1,4 +1,4 @@
-# RepoCrunch 🚀
+# RepoCrunch 
 
 A high-performance repository packer and query engine written in Rust, designed to prepare codebases for Large Language Models.
 
