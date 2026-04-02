@@ -29,18 +29,6 @@ Pack your entire repo into a single, token-efficient file that LLMs can actually
 
 ## Installation
 
-### Quick Install (macOS / Linux)
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/SatvikOfficial/RepoCrunch/main/install.sh
-```
-
-### Windows (PowerShell)
-
-```powershell
-iwr https://raw.githubusercontent.com/SatvikOfficial/RepoCrunch/main/install.ps1
-```
-
 ### Cargo (any platform with Rust)
 
 ```bash
@@ -65,6 +53,7 @@ Run `repocrunch` anywhere inside a Git repository. It automatically detects the 
 # Full repository pack
 repocrunch
 
+# Side Note: query part may not be working properly atm
 # Query-filtered pack (natural language)
 repocrunch "files related to authentication"
 repocrunch "frontend components"
@@ -89,9 +78,6 @@ repocrunch "database models"
 ```bash
 # Repository statistics with language breakdown
 repocrunch stats
-
-# Deep file inspection (imports, symbols, dependents)
-repocrunch explain src/main.rs
 
 # Trace execution flow through the dependency graph
 repocrunch flow login
